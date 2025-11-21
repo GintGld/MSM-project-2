@@ -1,97 +1,66 @@
-% ================================
-% Main racetrack launcher script
-% ================================
+% main.m - Genetic learning controller for circuit driving
+% Assumes provided functions are in folder students_etudiants/AG_circuit
+% Usage: run this script in MATLAB with that folder on the path.
 
-clear; clc;
+rng(1); % for reproducibility
+addpath('AG_circuit');
 
-% Ask user whether to load or create
-choice = questdlg( ...
-    'Do you want to use an existing race track or create a new one?', ...
-    'Racetrack selection', ...
-    'load existing', 'create new one', ...
-    'create new one');
+% Parameters
+nbch = 100;           % population size
+nbgen = 10;         % max generations
+nbsl_frac = 0.3;    % fraction selected as parents
+nbmu = 60;            % number of mutants per generation
+max_steps = 500;      % max time steps in a trajectory
+start_i = 5; start_j = 16; % given starting point in Circuit coordinates
+reg = 1;                % regularization factor for race time
 
-% If user closes the dialog, just stop
-if isempty(choice)
-    return;
+% load circuit and Dij
+load('AG_circuit/Circuit1.mat','Circuit');
+load('AG_circuit/Dij.mat','Dij');
+
+% preprocess circuit: replace -1 by distances to finish
+Circuit = distance(Circuit);
+
+% helper numbers
+nbsl = max(2,ceil(nbch*nbsl_frac));
+
+% initialize empty chromosome struct array as specified in the problem
+Ch(1:nbch) = struct('view',[],'div',[],'djv',[],'acc',[],'whe',[],'fit',0,'nbr',[],'nge',[],'crash',false,'line',false);
+
+% Main evolutionary loop
+best_history = zeros(nbgen,1);
+for g = 1:nbgen
+    % evaluate all children by simulating trajectories
+    for k = 1:nbch
+        Ch(k) = simulate_chromosome(Ch(k), Circuit, max_steps, reg, Dij);
+    end
+
+    % evaluate fitness already stored in Ch
+    fits = [Ch.fit];
+    [sorted_fits, idx] = sort(fits);
+    best_history(g) = sorted_fits(1);
+    fprintf('Gen %3d: best fit = %.2f  median = %.2f\n', g, sorted_fits(1), median(fits));
+
+    % select best nbsl as parents
+    parents = Ch(idx(1:nbsl));
+
+    % create new population via crossover
+    Ch = create_population(parents, nbch);
+
+    % mutate population (parents reserved inside create_population per description)
+    Ch = mutate(Ch, nbsl, nbmu, nbch);
 end
 
-M = [];
-D = [];
+% show best chromosome trajectory
+[~, best_idx] = min([Ch.fit]);
+bestCh = Ch(best_idx);
+fprintf('\nBest chromosome fitness = %.2f (crash=%d, line=%d)\n', bestCh.fit, bestCh.crash, bestCh.line);
 
-switch choice
-    case 'create new one'
-        % Call your function that builds track + distance
-        [M, D] = grid_creator;
+% save full result for later redraw
+save('training_result.mat', 'Ch', 'bestCh', 'best_history');
 
-    case 'load existing'
-        % Let user pick a .mat file
-        [fileName, filePath] = uigetfile('*.mat', 'Select racetrack file');
-        if isequal(fileName, 0)
-            % User cancelled
-            return;
-        end
+visu_circuit(Circuit);
+visu_trajectory(bestCh, Circuit, Dij);
 
-        data = load(fullfile(filePath, fileName));
-
-        % Expect variables M and D inside the file
-        if ~isfield(data, 'M') || ~isfield(data, 'D')
-            errordlg('Selected file does not contain variables M and D.', ...
-                     'Invalid file', 'modal');
-            return;
-        end
-
-        M = data.M;
-        D = data.D;
-
-    otherwise
-        % Should not happen, but just in case
-        return;
-end
-
-% If something went wrong and we don't have M/D, stop
-if isempty(M) || isempty(D)
-    return;
-end
-
-% ================================
-% Plot M and D side by side
-% ================================
-
-% --- Build custom colormap for M ---
-anchorVals = [-1   -0.5   0    0.5    1];
-anchorRGB  = [139  133  136; ... % -1
-               89   38   11; ...  % -0.5
-                0   87   63; ...  %  0
-              219  154   74; ...  %  0.5
-              196    2   51] / 255; % 1
-
-Ncolors = 256;
-x = linspace(-1, 1, Ncolors);
-cmap = zeros(Ncolors, 3);
-
-for k = 1:3
-    cmap(:, k) = interp1(anchorVals, anchorRGB(:, k), x, 'linear');
-end
-
-% --- Create figure and axes ---
-fig = figure('Name', 'Racetrack: M and D', 'NumberTitle', 'off');
-tiledlayout(fig, 1, 2, 'Padding', 'compact', 'TileSpacing', 'compact');
-
-% ----- Left: M -----
-ax1 = nexttile;
-imagesc(ax1, M, [-1 1]);
-axis(ax1, 'image');
-colormap(ax1, cmap);      % custom colormap for M
-set(ax1, 'XTick', [], 'YTick', []);   % no ticks
-title(ax1, 'Track (M)');
-% No colorbar for M
-
-% ----- Right: D -----
-ax2 = nexttile;
-imagesc(ax2, D);
-axis(ax2, 'image');
-colormap(ax2, turbo);     % turbo for D
-set(ax2, 'XTick', [], 'YTick', []);   % no ticks
-title(ax2, 'Distance field (D)');
-colorbar(ax2);            % only D has a colorbar
+% plot progress
+figure; plot(best_history(1:g)); xlabel('Generation'); ylabel('Best fitness'); title('Evolution of best fitness');

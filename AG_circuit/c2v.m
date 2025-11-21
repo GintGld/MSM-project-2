@@ -24,7 +24,7 @@ switch card
     case 'Nord'
         div  = -di;
         djv  = dj;
-    case'Sud'
+    case 'Sud'
         div  = di;
         djv  = -dj;
     case 'Ouest'

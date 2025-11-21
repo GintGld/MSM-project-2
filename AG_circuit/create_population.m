@@ -13,7 +13,3 @@ for nch = nbsel + 1 : nbch
     Ch(nch).whe  = child.whe;
     Ch(nch).nbr  = child.nbr;
 end
-
-
-
-
