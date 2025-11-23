@@ -1,8 +1,8 @@
-function show_results(circuit_file, res_file)
-    % loads Ch, bestCh, best_history
-    % load('test.mat');
-    load(circuit_file, 'Circuit');
-    load(res_file, 'bestCh', 'best_history');
+function show_results(res_file)
+    addpath('src');
+    addpath('thirdparty');
+
+    load(res_file, 'bestCh', 'best_history', 'Circuit');
     load('thirdparty/Dij.mat','Dij');
 
     visu_circuit(Circuit);

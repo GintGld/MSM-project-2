@@ -1,13 +1,8 @@
-function res = train(Circuit, Dij, pars)
-    % initialize empty chromosome struct array as specified in the problem
-    Ch(1:pars.nbch) = struct('view',[],'div',[],'djv',[],'acc',[],'whe',[],'fit',0,'nbr',[],'nge',[],'crash',false,'line',false);
-
-    % Main evolutionary loop
-    best_history = zeros(pars.nbgen,1);
-    for g = 1:pars.nbgen
+function res = train(Ch, best_history, Circuit, Dij, cfg)
+    for g = 1:cfg.nbgen
         % evaluate all children by simulating trajectories
-        for k = 1:pars.nbch
-            Ch(k) = simulate_chromosome(Ch(k), Circuit, pars.max_steps, pars.reg, Dij);
+        for k = 1:cfg.nbch
+            Ch(k) = simulate_chromosome(Ch(k), Circuit, cfg.max_steps, cfg.reg, Dij);
         end
 
         % evaluate fitness already stored in Ch
@@ -17,13 +12,13 @@ function res = train(Circuit, Dij, pars)
         fprintf('Gen %3d: best fit = %.2f  median = %.2f\n', g, sorted_fits(1), median(fits));
 
         % select best nbsl as parents
-        parents = Ch(idx(1:pars.nbsl));
+        parents = Ch(idx(1:cfg.nbsl));
     
         % create new population via crossover
-        Ch = create_population(parents, pars.nbch);
+        Ch = create_population(parents, cfg.nbch);
     
         % mutate population (parents reserved inside create_population per description)
-        Ch = mutate(Ch, pars.nbsl, pars.nbmu, pars.nbch);
+        Ch = mutate(Ch, cfg.nbsl, cfg.nbmu, cfg.nbch);
     end
 
     res = struct();
@@ -32,4 +27,5 @@ function res = train(Circuit, Dij, pars)
     res.bestCh = Ch(best_idx);
     res.Ch = Ch;
     res.best_history = best_history;
+    res.Circuit = Circuit;
 end

@@ -6,19 +6,18 @@ rng(1); % for reproducibility
 addpath('thirdparty');
 addpath('src');
 
-pars = init();
+cfg = init();
 
-% load circuit and Dij
-load(pars.circuit_file, 'Circuit');
-load(pars.Dij_file, 'Dij');
+% load Dij
+load('thirdparty/Dij.mat', 'Dij');
 
 % preprocess circuit: replace -1 by distances to finish
-Circuit = distance(Circuit);
+cfg.Circuit = distance(cfg.Circuit);
 
-res = train(Circuit, Dij, pars);
+res = train(cfg.Ch, cfg.best_history, cfg.Circuit, Dij, cfg);
 
 % show best chromosome trajectory
 fprintf('\nBest chromosome fitness = %.2f (crash=%d, line=%d)\n', res.bestCh.fit, res.bestCh.crash, res.bestCh.line);
 
 % save full result for later redraw
-save_result(res, pars.output_file);
+save_result(res, cfg.output_file);
