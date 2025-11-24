@@ -90,15 +90,17 @@ Provided external code that includes:
 
 ## Results
 
-Experiments were conducted on two racing tracks.
+Calculations were conducted on two racing tracks.
 
 ### Track 1
 
-*(Placeholder for figure — fitness curve, trajectory visualization)*
+<img src="data/track1.png" alt="drawing" height="450"/>
+<img src="data/fit1.png" alt="drawing" height="450"/>
 
 ### Track 2
 
-*(Placeholder for figure — fitness curve, trajectory visualization)*
+<img src="data/track2.png" alt="drawing" height="450"/>
+<img src="data/fit2.png" alt="drawing" height="450"/>
 
 ---
 
