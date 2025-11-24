@@ -70,7 +70,7 @@ Provided external code that includes:
 
 * mutation and crossover functions;
 * track visualization tools;
-* a basic physics engine;
+* basic physics engine;
 * supporting utilities.
 
 ---
@@ -122,9 +122,3 @@ Potential directions for future development include:
 * replacing fixed control parameters with neural network-based controllers;
 * applying advanced selection strategies or adaptive mutation rates;
 * introducing additional fitness metrics such as smoothness of steering or fuel efficiency.
-
----
-
-## Appendix
-
-Additional materials can be included here: GA parameters, chromosome structure examples, tables, supplementary graphs.
