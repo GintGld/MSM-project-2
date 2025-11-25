@@ -34,6 +34,7 @@ function Chk = simulate_chromosome(Chk, Circuit, max_steps, reg, Dij)
         end
         Chk.nge(end+1) = gene_idx;
 
+        i_old = i; j_old = j;
         [i, j, di, dj] = run(i, j, di, dj, acc, whe, Dij);
 
         % check crash (outside circuit) -- Circuit entries outside track are 0 by problem description
@@ -43,6 +44,20 @@ function Chk = simulate_chromosome(Chk, Circuit, max_steps, reg, Dij)
         % check finish line crossing: assume finish has distance 0/1
         if Circuit(i,j) <= 1
             Chk.line = true; break;
+        end
+
+        % Don't allow car to cross non-track cell
+        %  0  0  *      0  0 -1
+        %  0  0 -1  ->  0  0 -1
+        % -1 -1 -1      * -1 -1
+        if abs(i - i_old) == 2 && abs(j - j_old) == 2 && Circuit((i+i_old)/2,(j+j_old)/2) == 0
+            Chk.crash = true; break;
+        end
+
+        % This jump is impossible in normal track.
+        % Prevents from turning 180 at the start.
+        if Circuit(i_old,j_old) - Circuit(i,j) > 3
+            Chk.crash = true; break;
         end
     end
 
