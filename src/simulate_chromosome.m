@@ -56,7 +56,7 @@ function Chk = simulate_chromosome(Chk, Circuit, max_steps, reg, Dij)
 
         % This jump is impossible in normal track.
         % Prevents from turning 180 at the start.
-        if Circuit(i_old,j_old) - Circuit(i,j) > 3
+        if Circuit(i_old,j_old) - Circuit(i,j) > 50
             Chk.crash = true; break;
         end
     end
